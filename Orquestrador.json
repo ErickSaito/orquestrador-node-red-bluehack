@@ -1,13 +1,20 @@
 [
     {
-        "id": "80381157.c40ff",
+        "id": "ea33f394.07ed7",
+        "type": "tab",
+        "label": "nodechat",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "965cfe1f.96ef5",
         "type": "tab",
         "label": "Orquestrador",
         "disabled": false,
         "info": ""
     },
     {
-        "id": "145aae4d.b58102",
+        "id": "8a998751.b0fab8",
         "type": "subflow",
         "name": "Image recognition subflow",
         "info": "",
@@ -17,7 +24,7 @@
                 "y": 230,
                 "wires": [
                     {
-                        "id": "adb1fb63.50aa88"
+                        "id": "c2cf81d8.ee2dd"
                     }
                 ]
             }
@@ -28,7 +35,7 @@
                 "y": 227,
                 "wires": [
                     {
-                        "id": "bca9c56.a805238",
+                        "id": "bd181944.8e9e88",
                         "port": 0
                     }
                 ]
@@ -36,7 +43,7 @@
         ]
     },
     {
-        "id": "e7c0e51a.76a278",
+        "id": "ffcf8a86.2c3918",
         "type": "subflow",
         "name": "Instagram API",
         "info": "",
@@ -46,7 +53,7 @@
                 "y": 97,
                 "wires": [
                     {
-                        "id": "350ff6fb.7dd09a"
+                        "id": "15c1f0b4.0acd5f"
                     }
                 ]
             }
@@ -57,7 +64,7 @@
                 "y": 179,
                 "wires": [
                     {
-                        "id": "7cc6adee.5ad674",
+                        "id": "da7f8428.671988",
                         "port": 0
                     }
                 ]
@@ -65,41 +72,136 @@
         ]
     },
     {
-        "id": "3236797d.4f8286",
+        "id": "8c2732e3.ad486",
         "type": "subflow",
         "name": "Spotify API",
         "info": "",
         "in": [
             {
-                "x": 50,
-                "y": 30,
-                "wires": []
+                "x": 235,
+                "y": 166,
+                "wires": [
+                    {
+                        "id": "ce496e8e.7ef8a"
+                    }
+                ]
             }
         ],
         "out": [
             {
-                "x": 160,
-                "y": 30,
-                "wires": []
+                "x": 703,
+                "y": 167,
+                "wires": [
+                    {
+                        "id": "61137fe2.a4281",
+                        "port": 0
+                    }
+                ]
             }
         ]
     },
     {
-        "id": "78533c57.025814",
-        "type": "instagram-credentials",
+        "id": "b327a20e.020fd",
+        "type": "websocket-listener",
         "z": "",
-        "username": "erick_saito"
+        "path": "/ws/message",
+        "wholemsg": "false"
     },
     {
-        "id": "801f9cc0.d7944",
-        "type": "instagram-credentials",
+        "id": "adfc947.443da68",
+        "type": "cloudant",
         "z": "",
-        "username": ""
+        "host": "9c2f76c4-60b3-4ad4-a049-737359159e20-bluemix.cloudant.com",
+        "name": ""
     },
     {
-        "id": "8e266ab0.78caa8",
+        "id": "41895ba3.6819b4",
+        "type": "websocket in",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "server": "b327a20e.020fd",
+        "client": "",
+        "x": 221,
+        "y": 179,
+        "wires": [
+            [
+                "41e107b7.ff18d8"
+            ]
+        ]
+    },
+    {
+        "id": "41e107b7.ff18d8",
+        "type": "function",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "func": "delete msg._session;\nreturn msg;\n\n",
+        "outputs": 1,
+        "x": 442,
+        "y": 185,
+        "wires": [
+            [
+                "396bfcb2.4ce584"
+            ]
+        ]
+    },
+    {
+        "id": "396bfcb2.4ce584",
+        "type": "websocket out",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "server": "b327a20e.020fd",
+        "x": 623,
+        "y": 185,
+        "wires": []
+    },
+    {
+        "id": "f9943417.40e968",
+        "type": "http in",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "url": "/message/:messageid",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 253,
+        "wires": [
+            [
+                "4ddd7e1e.d2421"
+            ]
+        ]
+    },
+    {
+        "id": "4ddd7e1e.d2421",
+        "type": "template",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<head>\n  <meta name=\"viewport\" content=\"width=320, initial-scale=1\">\n  <title>Chat</title>\n</head>\n\n<body>\n  <div id=\"wrapper\">\n    <div id=\"chat_box\" class=\"content\"></div>\n\n    <div id=\"footer\">\n      <div class=\"content\">\n        <input type=\"text\" id=\"user\" placeholder=\"Who are you?\" />\n        <input type=\"text\" id=\"message\" placeholder=\"What do you want to say?\" />\n        <input type=\"button\" id=\"send_btn\" value=\"Send\" onclick=\"sendMessage()\">\n      </div>\n    </div>\n  </div>\n\n<script type=\"text/javascript\">\n  var wsUri = \"wss://{{req.headers.host}}/ws/message\";\n  var ws = new WebSocket(wsUri);\n  \n  function createSystemMessage(message) {\n    var message = document.createTextNode(message);\n\n    var messageBox = document.createElement('p');\n    messageBox.className = 'system';\n\n    messageBox.appendChild(message);\n\n    var chat = document.getElementById('chat_box');\n    chat.appendChild(messageBox);\n  }\n\n  function createUserMessage(user, message, messageid) {\n      \n    if(messageid != \"{{req.params.messageid}}\") return;\n      \n    var user = document.createTextNode(user + ': ');\n\n    var userBox = document.createElement('span');\n    userBox.className = 'username';\n    userBox.appendChild(user);\n\n    var message = document.createTextNode(message);\n\n    var messageBox = document.createElement('p');\n    messageBox.appendChild(userBox);\n    messageBox.appendChild(message);\n\n    var chat = document.getElementById('chat_box');\n    chat.appendChild(messageBox);\n  }\n\n  ws.onopen = function(ev) {\n    createSystemMessage('[Connected]');\n  };\n\n  ws.onclose = function(ev) {\n    createSystemMessage('[Disconnected]');\n  }\n\n  ws.onmessage = function(ev) {\n    var payload = JSON.parse(ev.data);\n    createUserMessage(payload.user, payload.message,payload.messageid);\n\n    var chat = document.getElementById('chat_box');\n    chat.scrollTop = chat.scrollHeight;\n  }\n\n  function sendMessage() {\n    var user = document.getElementById('user');\n    var message = document.getElementById('message');\n\n    var payload = {\n      message: message.value,\n      user: user.value,\n      ts: (new Date()).getTime(),\n      messageid: \"{{req.params.messageid}}\"\n    };\n\n    ws.send(JSON.stringify(payload));\n    message.value = \"\";\n  };\n</script>\n\n<style type=\"text/css\">\n  * {\n    font-family: \"Palatino Linotype\", \"Book Antiqua\", Palatino, serif;\n    font-style: italic;\n    font-size: 24px;\n  }\n\n  html, body, #wrapper {\n    margin: 0;\n    padding: 0;\n    height: 100%;\n  }\n\n  #wrapper {\n    background-color: #ecf0f1;\n  }\n\n  #chat_box {\n    box-sizing: border-box;\n    height: 100%;\n    overflow: auto;\n    padding-bottom: 50px;\n  }\n\n  #footer {\n    box-sizing: border-box;\n    position: fixed;\n    bottom: 0;\n    height: 50px;\n    width: 100%;\n    background-color: #2980b9;\n  }\n\n  #footer .content {\n    padding-top: 4px;\n    position: relative;\n  }\n\n  #user { width: 20%; }\n  #message { width: 68%; }\n  #send_btn {\n    width: 10%;\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin: 0;\n  }\n\n  .content {\n    width: 70%;\n    margin: 0 auto;\n  }\n\n  input[type=\"text\"],\n  input[type=\"button\"] {\n    border: 0;\n    color: #fff;\n  }\n\n  input[type=\"text\"] {\n    background-color: #146EA8;\n    padding: 3px 10px;\n  }\n\n  input[type=\"button\"] {\n    background-color: #f39c12;\n    border-right: 2px solid #e67e22;\n    border-bottom: 2px solid #e67e22;\n    min-width: 70px;\n    display: inline-block;\n  }\n\n  input[type=\"button\"]:hover {\n    background-color: #e67e22;\n    border-right: 2px solid #f39c12;\n    border-bottom: 2px solid #f39c12;\n    cursor: pointer;\n  }\n\n  .system,\n  .username {\n    color: #aaa;\n    font-style: italic;\n    font-family: monospace;\n    font-size: 16px;\n  }\n\n  @media(max-width: 1000px) {\n    .content { width: 90%; }\n  }\n\n  @media(max-width: 780px) {\n    #footer { height: 91px; }\n    #chat_box { padding-bottom: 91px; }\n\n    #user { width: 100%; }\n    #message { width: 80%; }\n  }\n\n  @media(max-width: 400px) {\n    #footer { height: 135px; }\n    #chat_box { padding-bottom: 135px; }\n\n    #message { width: 100%; }\n    #send_btn {\n      position: relative;\n      margin-top: 3px;\n      width: 100%;\n    }\n  }\n</style>\n</body>",
+        "x": 442,
+        "y": 253,
+        "wires": [
+            [
+                "be165eab.865ca"
+            ]
+        ]
+    },
+    {
+        "id": "be165eab.865ca",
+        "type": "http response",
+        "z": "ea33f394.07ed7",
+        "name": "",
+        "x": 585,
+        "y": 253,
+        "wires": []
+    },
+    {
+        "id": "62e547a3.357738",
         "type": "visual-recognition-v3",
-        "z": "145aae4d.b58102",
+        "z": "8a998751.b0fab8",
         "name": "Recognize Image",
         "apikey": "c1b9be38591e7746ce2c82efc3312fd3f2330706",
         "image-feature": "classifyImage",
@@ -108,14 +210,14 @@
         "y": 227,
         "wires": [
             [
-                "bca9c56.a805238"
+                "bd181944.8e9e88"
             ]
         ]
     },
     {
-        "id": "adb1fb63.50aa88",
+        "id": "c2cf81d8.ee2dd",
         "type": "change",
-        "z": "145aae4d.b58102",
+        "z": "8a998751.b0fab8",
         "name": "Extract infos",
         "rules": [
             {
@@ -149,14 +251,14 @@
         "y": 228,
         "wires": [
             [
-                "8e266ab0.78caa8"
+                "62e547a3.357738"
             ]
         ]
     },
     {
-        "id": "bca9c56.a805238",
+        "id": "bd181944.8e9e88",
         "type": "function",
-        "z": "145aae4d.b58102",
+        "z": "8a998751.b0fab8",
         "name": "Extract relevants data",
         "func": "var data = msg.result.images[0].classifiers[0].classes;\nvar relevantData = [];\n\nfor (i = 0; i < data.length; i++) {\n    if(data[i].score > 0.70) {\n        relevantData.push(data[i]);\n    }\n}\n\nmsg.payload = {\n    \"classifiers\" : relevantData,\n    \"text\" : msg.text,\n    \"location\" : msg.location\n};\n\nreturn msg;",
         "outputs": 1,
@@ -168,43 +270,26 @@
         ]
     },
     {
-        "id": "f5cc9c1a.360f2",
-        "type": "http in",
-        "z": "80381157.c40ff",
-        "name": "/get social infos",
-        "url": "/social",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 260,
-        "y": 184,
-        "wires": [
-            [
-                "d157ed.e717781"
-            ]
-        ]
-    },
-    {
-        "id": "350ff6fb.7dd09a",
+        "id": "15c1f0b4.0acd5f",
         "type": "http request",
-        "z": "e7c0e51a.76a278",
+        "z": "ffcf8a86.2c3918",
         "name": "Send request to Instagram API",
         "method": "GET",
         "ret": "obj",
-        "url": "https://api.instagram.com/v1/users/self/media/recent/?access_token={{{payload.instagram}}}&count=2",
+        "url": "https://api.instagram.com/v1/users/self/media/recent/?access_token={{{keys.instagram}}}&count=2",
         "tls": "",
-        "x": 225,
-        "y": 94,
+        "x": 230,
+        "y": 96,
         "wires": [
             [
-                "317cc2e6.5ee78e"
+                "84508e30.463fb"
             ]
         ]
     },
     {
-        "id": "317cc2e6.5ee78e",
+        "id": "84508e30.463fb",
         "type": "function",
-        "z": "e7c0e51a.76a278",
+        "z": "ffcf8a86.2c3918",
         "name": "Extract photos urls, text and locations",
         "func": "data = msg.payload.data;\n\nphotos = [];\n\nfor (i = 0; i < data.length; i++) {\n    if (data[i].type == \"image\") {\n        photos.push({\n            \"imageurl\" : data[i].images.standard_resolution.url,\n            \"text\" : data[i].caption.text,\n            \"location\" : data[i].location\n        });    \n    }\n}\n\nmsg.payload = photos;\n\nreturn msg;",
         "outputs": 1,
@@ -213,27 +298,27 @@
         "y": 274,
         "wires": [
             [
-                "bc6da1ac.a214e"
+                "7df1e8eb.092c88"
             ]
         ]
     },
     {
-        "id": "bc819c82.636be",
-        "type": "subflow:145aae4d.b58102",
-        "z": "e7c0e51a.76a278",
+        "id": "88e7f9cb.889268",
+        "type": "subflow:8a998751.b0fab8",
+        "z": "ffcf8a86.2c3918",
         "name": "",
         "x": 538,
         "y": 89,
         "wires": [
             [
-                "bc6da1ac.a214e"
+                "7df1e8eb.092c88"
             ]
         ]
     },
     {
-        "id": "bc6da1ac.a214e",
+        "id": "7df1e8eb.092c88",
         "type": "Parallel Iterator",
-        "z": "e7c0e51a.76a278",
+        "z": "ffcf8a86.2c3918",
         "name": "Iterator photos",
         "property": "payload",
         "saveOutput": 1,
@@ -243,48 +328,222 @@
         "y": 180,
         "wires": [
             [
-                "bc819c82.636be"
+                "88e7f9cb.889268"
             ],
             [
-                "7cc6adee.5ad674"
+                "da7f8428.671988"
             ]
         ]
     },
     {
-        "id": "cf26dc44.9aee1",
-        "type": "http response",
-        "z": "80381157.c40ff",
-        "name": "",
-        "statusCode": "",
-        "headers": {},
-        "x": 651,
-        "y": 183,
-        "wires": []
-    },
-    {
-        "id": "7cc6adee.5ad674",
+        "id": "da7f8428.671988",
         "type": "function",
-        "z": "e7c0e51a.76a278",
+        "z": "ffcf8a86.2c3918",
         "name": "Random Intention",
-        "func": "var data = msg.payload;\nvar intentions = [];\nfor (i = 0; i < 3; i++) {   \n    var randomPhoto = Math.floor(Math.random() * data.length);\n    while (data[randomPhoto].classifiers.length <= 0) {\n        randomPhoto = Math.floor(Math.random() * data.length);\n    }\n    var randomClass = Math.floor(Math.random() * data[randomPhoto].classifiers.length);\n    var description = data[randomPhoto].classifiers[randomClass];\n    if (description) {\n        intentions.push( {     \n            \"type\": \"intention\",\n            \"description\": description\n        });    \n    }\n    \n}\nmsg.payload = intentions;\nreturn msg;",
+        "func": "var data = msg.payload;\nvar descriptions = [];\nfor (i = 0; i < 3; i++) {   \n    var randomPhoto = Math.floor(Math.random() * data.length);\n    while (data[randomPhoto].classifiers.length <= 0) {\n        randomPhoto = Math.floor(Math.random() * data.length);\n    }\n    var randomClass = Math.floor(Math.random() * data[randomPhoto].classifiers.length);\n    var description = data[randomPhoto].classifiers[randomClass].class;\n    if (description) {\n           descriptions.push(description);\n    }\n    \n}\n\nmsg.payload = {     \n            \"type\": \"intention\",\n            \"description\": descriptions\n};\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 787,
-        "y": 144,
+        "x": 788,
+        "y": 182,
         "wires": [
             []
         ]
     },
     {
-        "id": "d157ed.e717781",
-        "type": "subflow:e7c0e51a.76a278",
-        "z": "80381157.c40ff",
-        "x": 485,
-        "y": 116,
+        "id": "5ba3cbf7.149b94",
+        "type": "subflow:ffcf8a86.2c3918",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "x": 297,
+        "y": 148,
         "wires": [
             [
-                "cf26dc44.9aee1"
+                "8caa11ad.372c9"
             ]
+        ]
+    },
+    {
+        "id": "67ae51a8.89237",
+        "type": "subflow:8c2732e3.ad486",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "x": 693.5,
+        "y": 146,
+        "wires": [
+            [
+                "8345384d.175cc8"
+            ]
+        ]
+    },
+    {
+        "id": "ce496e8e.7ef8a",
+        "type": "http request",
+        "z": "8c2732e3.ad486",
+        "name": "Send request to Spotify API",
+        "method": "GET",
+        "ret": "obj",
+        "url": "https://node-spotify-interests.mybluemix.net/api/interests/{{{keys.spotify}}}",
+        "tls": "",
+        "x": 396,
+        "y": 221,
+        "wires": [
+            [
+                "61137fe2.a4281"
+            ]
+        ]
+    },
+    {
+        "id": "50586e8.12fad9",
+        "type": "http in",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "url": "/login",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 82,
+        "y": 65,
+        "wires": [
+            [
+                "bf34405e.f9e34"
+            ]
+        ]
+    },
+    {
+        "id": "1b6bcfaa.35bf5",
+        "type": "cloudant in",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "cloudant": "adfc947.443da68",
+        "database": "red-bluehack-app",
+        "service": "Node-Red-bluehack-App-cloudantNoSQLDB",
+        "search": "_id_",
+        "design": "",
+        "index": "",
+        "x": 434,
+        "y": 61,
+        "wires": [
+            [
+                "ab8544ba.4a4d18"
+            ]
+        ]
+    },
+    {
+        "id": "8caa11ad.372c9",
+        "type": "change",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload",
+                "pt": "msg",
+                "to": "instagram",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 495,
+        "y": 142,
+        "wires": [
+            [
+                "67ae51a8.89237"
+            ]
+        ]
+    },
+    {
+        "id": "bf34405e.f9e34",
+        "type": "function",
+        "z": "965cfe1f.96ef5",
+        "name": "Parse user",
+        "func": "msg.payload = \"profile/\" + msg.payload.user;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 232,
+        "y": 68,
+        "wires": [
+            [
+                "1b6bcfaa.35bf5"
+            ]
+        ]
+    },
+    {
+        "id": "ab8544ba.4a4d18",
+        "type": "change",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.keys[0].instagram",
+                "pt": "msg",
+                "to": "keys.instagram",
+                "tot": "msg"
+            },
+            {
+                "t": "move",
+                "p": "payload.keys[0].spotify",
+                "pt": "msg",
+                "to": "keys.spotify",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 639,
+        "y": 59,
+        "wires": [
+            [
+                "5ba3cbf7.149b94"
+            ]
+        ]
+    },
+    {
+        "id": "8345384d.175cc8",
+        "type": "function",
+        "z": "965cfe1f.96ef5",
+        "name": "Join social media",
+        "func": "msg.payload.push(msg.instagram);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 870,
+        "y": 140,
+        "wires": [
+            [
+                "9546c41f.c06348"
+            ]
+        ]
+    },
+    {
+        "id": "9546c41f.c06348",
+        "type": "http response",
+        "z": "965cfe1f.96ef5",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 958,
+        "y": 244,
+        "wires": []
+    },
+    {
+        "id": "61137fe2.a4281",
+        "type": "function",
+        "z": "8c2732e3.ad486",
+        "name": "Parse array",
+        "func": "data = msg.payload;\n\nfor (i = 0; i < data.length; i++) {\n    data[i].description = data[i].description.split(\",\");\n}\nmsg.payload = data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 586,
+        "y": 150,
+        "wires": [
+            []
         ]
     }
 ]
