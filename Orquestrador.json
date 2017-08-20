@@ -1,0 +1,290 @@
+[
+    {
+        "id": "80381157.c40ff",
+        "type": "tab",
+        "label": "Orquestrador",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "145aae4d.b58102",
+        "type": "subflow",
+        "name": "Image recognition subflow",
+        "info": "",
+        "in": [
+            {
+                "x": 101,
+                "y": 230,
+                "wires": [
+                    {
+                        "id": "adb1fb63.50aa88"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 912,
+                "y": 227,
+                "wires": [
+                    {
+                        "id": "bca9c56.a805238",
+                        "port": 0
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "e7c0e51a.76a278",
+        "type": "subflow",
+        "name": "Instagram API",
+        "info": "",
+        "in": [
+            {
+                "x": 49,
+                "y": 97,
+                "wires": [
+                    {
+                        "id": "350ff6fb.7dd09a"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 954,
+                "y": 179,
+                "wires": [
+                    {
+                        "id": "7cc6adee.5ad674",
+                        "port": 0
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "3236797d.4f8286",
+        "type": "subflow",
+        "name": "Spotify API",
+        "info": "",
+        "in": [
+            {
+                "x": 50,
+                "y": 30,
+                "wires": []
+            }
+        ],
+        "out": [
+            {
+                "x": 160,
+                "y": 30,
+                "wires": []
+            }
+        ]
+    },
+    {
+        "id": "78533c57.025814",
+        "type": "instagram-credentials",
+        "z": "",
+        "username": "erick_saito"
+    },
+    {
+        "id": "801f9cc0.d7944",
+        "type": "instagram-credentials",
+        "z": "",
+        "username": ""
+    },
+    {
+        "id": "8e266ab0.78caa8",
+        "type": "visual-recognition-v3",
+        "z": "145aae4d.b58102",
+        "name": "Recognize Image",
+        "apikey": "c1b9be38591e7746ce2c82efc3312fd3f2330706",
+        "image-feature": "classifyImage",
+        "lang": "en",
+        "x": 438.5,
+        "y": 227,
+        "wires": [
+            [
+                "bca9c56.a805238"
+            ]
+        ]
+    },
+    {
+        "id": "adb1fb63.50aa88",
+        "type": "change",
+        "z": "145aae4d.b58102",
+        "name": "Extract infos",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.text",
+                "pt": "msg",
+                "to": "text",
+                "tot": "msg"
+            },
+            {
+                "t": "move",
+                "p": "payload.location",
+                "pt": "msg",
+                "to": "location",
+                "tot": "msg"
+            },
+            {
+                "t": "move",
+                "p": "payload.imageurl",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 248,
+        "y": 228,
+        "wires": [
+            [
+                "8e266ab0.78caa8"
+            ]
+        ]
+    },
+    {
+        "id": "bca9c56.a805238",
+        "type": "function",
+        "z": "145aae4d.b58102",
+        "name": "Extract relevants data",
+        "func": "var data = msg.result.images[0].classifiers[0].classes;\nvar relevantData = [];\n\nfor (i = 0; i < data.length; i++) {\n    if(data[i].score > 0.70) {\n        relevantData.push(data[i]);\n    }\n}\n\nmsg.payload = {\n    \"classifiers\" : relevantData,\n    \"text\" : msg.text,\n    \"location\" : msg.location\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 653,
+        "y": 228,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f5cc9c1a.360f2",
+        "type": "http in",
+        "z": "80381157.c40ff",
+        "name": "/get social infos",
+        "url": "/social",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 184,
+        "wires": [
+            [
+                "d157ed.e717781"
+            ]
+        ]
+    },
+    {
+        "id": "350ff6fb.7dd09a",
+        "type": "http request",
+        "z": "e7c0e51a.76a278",
+        "name": "Send request to Instagram API",
+        "method": "GET",
+        "ret": "obj",
+        "url": "https://api.instagram.com/v1/users/self/media/recent/?access_token={{{payload.instagram}}}&count=2",
+        "tls": "",
+        "x": 225,
+        "y": 94,
+        "wires": [
+            [
+                "317cc2e6.5ee78e"
+            ]
+        ]
+    },
+    {
+        "id": "317cc2e6.5ee78e",
+        "type": "function",
+        "z": "e7c0e51a.76a278",
+        "name": "Extract photos urls, text and locations",
+        "func": "data = msg.payload.data;\n\nphotos = [];\n\nfor (i = 0; i < data.length; i++) {\n    if (data[i].type == \"image\") {\n        photos.push({\n            \"imageurl\" : data[i].images.standard_resolution.url,\n            \"text\" : data[i].caption.text,\n            \"location\" : data[i].location\n        });    \n    }\n}\n\nmsg.payload = photos;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 332.5,
+        "y": 274,
+        "wires": [
+            [
+                "bc6da1ac.a214e"
+            ]
+        ]
+    },
+    {
+        "id": "bc819c82.636be",
+        "type": "subflow:145aae4d.b58102",
+        "z": "e7c0e51a.76a278",
+        "name": "",
+        "x": 538,
+        "y": 89,
+        "wires": [
+            [
+                "bc6da1ac.a214e"
+            ]
+        ]
+    },
+    {
+        "id": "bc6da1ac.a214e",
+        "type": "Parallel Iterator",
+        "z": "e7c0e51a.76a278",
+        "name": "Iterator photos",
+        "property": "payload",
+        "saveOutput": 1,
+        "recursive": 0,
+        "storeId": 0,
+        "x": 542,
+        "y": 180,
+        "wires": [
+            [
+                "bc819c82.636be"
+            ],
+            [
+                "7cc6adee.5ad674"
+            ]
+        ]
+    },
+    {
+        "id": "cf26dc44.9aee1",
+        "type": "http response",
+        "z": "80381157.c40ff",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 651,
+        "y": 183,
+        "wires": []
+    },
+    {
+        "id": "7cc6adee.5ad674",
+        "type": "function",
+        "z": "e7c0e51a.76a278",
+        "name": "Random Intention",
+        "func": "var data = msg.payload;\nvar intentions = [];\nfor (i = 0; i < 3; i++) {   \n    var randomPhoto = Math.floor(Math.random() * data.length);\n    while (data[randomPhoto].classifiers.length <= 0) {\n        randomPhoto = Math.floor(Math.random() * data.length);\n    }\n    var randomClass = Math.floor(Math.random() * data[randomPhoto].classifiers.length);\n    var description = data[randomPhoto].classifiers[randomClass];\n    if (description) {\n        intentions.push( {     \n            \"type\": \"intention\",\n            \"description\": description\n        });    \n    }\n    \n}\nmsg.payload = intentions;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 787,
+        "y": 144,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d157ed.e717781",
+        "type": "subflow:e7c0e51a.76a278",
+        "z": "80381157.c40ff",
+        "x": 485,
+        "y": 116,
+        "wires": [
+            [
+                "cf26dc44.9aee1"
+            ]
+        ]
+    }
+]
